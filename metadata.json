@@ -1,0 +1,6 @@
+{
+  "name": "Ugomenz Electronics",
+  "description": "Ugomenz Electronics Sales & Service Center in Warri, Nigeria. Live inventory, WhatsApp-based shopping cart, services, Shadow School, and a complete staff CMS portal.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
