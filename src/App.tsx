@@ -34,6 +34,7 @@ import {
 } from './initialData';
 
 import { Product, Order, Lead, SupportTicket, ServiceBooking, GalleryItem, ActiveStaffSession } from './types';
+import { syncCollection, upsertDocument, removeDocument } from './firebase';
 
 export default function App() {
   // Current visible page (17 available pages mapped via activeView)
@@ -41,7 +42,7 @@ export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Local state databases persisted inside localStorage
+  // Local state databases synced in real-time with Firestore
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [leads, setLeads] = useState<Lead[]>([]);
@@ -56,135 +57,153 @@ export default function App() {
   // Logged-in Staff Member Session (PIN matched)
   const [staffSession, setStaffSession] = useState<ActiveStaffSession | null>(null);
 
-  // Initialize and load databases on mount
+  // Initialize and load databases on mount with real-time Firestore sync
   useEffect(() => {
-    // Products
-    const localProds = localStorage.getItem('ug_products');
-    if (localProds) setProducts(JSON.parse(localProds));
-    else {
-      setProducts(INITIAL_PRODUCTS);
-      localStorage.setItem('ug_products', JSON.stringify(INITIAL_PRODUCTS));
-    }
+    // Synchronize Firestore collections automatically
+    const unsubProducts = syncCollection<Product>('products', setProducts, () => INITIAL_PRODUCTS);
+    const unsubGallery = syncCollection<GalleryItem>('gallery', setGalleryItems, () => INITIAL_GALLERY_ITEMS);
+    const unsubBlogs = syncCollection<any>('blogs', setBlogs, () => INITIAL_BLOG_POSTS);
+    const unsubLeads = syncCollection<Lead>('leads', setLeads, () => INITIAL_LEADS);
+    const unsubOrders = syncCollection<Order>('orders', setOrders, () => INITIAL_ORDERS);
+    const unsubBookings = syncCollection<ServiceBooking>('bookings', setBookings, () => INITIAL_SERVICE_BOOKINGS);
+    const unsubTickets = syncCollection<SupportTicket>('tickets', setTickets, () => INITIAL_SUPPORT_TICKETS);
 
-    // Orders
-    const localOrders = localStorage.getItem('ug_orders');
-    if (localOrders) setOrders(JSON.parse(localOrders));
-    else {
-      setOrders(INITIAL_ORDERS);
-      localStorage.setItem('ug_orders', JSON.stringify(INITIAL_ORDERS));
-    }
-
-    // Onboarding Leads
-    const localLeads = localStorage.getItem('ug_leads');
-    if (localLeads) setLeads(JSON.parse(localLeads));
-    else {
-      setLeads(INITIAL_LEADS);
-      localStorage.setItem('ug_leads', JSON.stringify(INITIAL_LEADS));
-    }
-
-    // Technical Tickets
-    const localTickets = localStorage.getItem('ug_tickets');
-    if (localTickets) setTickets(JSON.parse(localTickets));
-    else {
-      setTickets(INITIAL_SUPPORT_TICKETS);
-      localStorage.setItem('ug_tickets', JSON.stringify(INITIAL_SUPPORT_TICKETS));
-    }
-
-    // Service Bookings
-    const localBookings = localStorage.getItem('ug_bookings');
-    if (localBookings) setBookings(JSON.parse(localBookings));
-    else {
-      setBookings(INITIAL_SERVICE_BOOKINGS);
-      localStorage.setItem('ug_bookings', JSON.stringify(INITIAL_SERVICE_BOOKINGS));
-    }
-
-    // Blogs
-    const localBlogs = localStorage.getItem('ug_blogs');
-    if (localBlogs) setBlogs(JSON.parse(localBlogs));
-    else {
-      setBlogs(INITIAL_BLOG_POSTS);
-      localStorage.setItem('ug_blogs', JSON.stringify(INITIAL_BLOG_POSTS));
-    }
-
-    // Gallery Items
-    const localGallery = localStorage.getItem('ug_gallery');
-    if (localGallery) setGalleryItems(JSON.parse(localGallery));
-    else {
-      setGalleryItems(INITIAL_GALLERY_ITEMS);
-      localStorage.setItem('ug_gallery', JSON.stringify(INITIAL_GALLERY_ITEMS));
-    }
-
-    // Active Cart
+    // Active Cart (local to the customer's current browser device)
     const localCart = localStorage.getItem('ug_cart');
     if (localCart) setCartItems(JSON.parse(localCart));
 
-    // Active logged session
+    // Active logged staff session local persistence
     const savedSession = localStorage.getItem('ug_session');
     if (savedSession) setStaffSession(JSON.parse(savedSession));
 
+    return () => {
+      unsubProducts();
+      unsubGallery();
+      unsubBlogs();
+      unsubLeads();
+      unsubOrders();
+      unsubBookings();
+      unsubTickets();
+    };
   }, []);
 
-  // Common status update helper triggers
-  const handleUpdateProducts = (updatedList: Product[]) => {
-    setProducts(updatedList);
-    try {
-      localStorage.setItem('ug_products', JSON.stringify(updatedList));
-    } catch (e) {
-      console.warn('LocalStorage limit exceeded. Saved in active React state instead.', e);
+  // Common status update helpers pushing changes to global Firestore
+  const handleUpdateProducts = async (updatedList: Product[]) => {
+    const currentMap = new Map(products.map(p => [p.id, p]));
+    const updatedMap = new Map(updatedList.map(p => [p.id, p]));
+
+    for (const item of updatedList) {
+      const existing = currentMap.get(item.id);
+      if (!existing || JSON.stringify(existing) !== JSON.stringify(item)) {
+        await upsertDocument('products', item);
+      }
+    }
+    for (const item of products) {
+      if (!updatedMap.has(item.id)) {
+        await removeDocument('products', item.id);
+      }
     }
   };
 
-  const handleUpdateOrders = (updatedList: Order[]) => {
-    setOrders(updatedList);
-    try {
-      localStorage.setItem('ug_orders', JSON.stringify(updatedList));
-    } catch (e) {
-      console.warn('LocalStorage write failed', e);
+  const handleUpdateOrders = async (updatedList: Order[]) => {
+    const currentMap = new Map(orders.map(o => [o.id, o]));
+    const updatedMap = new Map(updatedList.map(o => [o.id, o]));
+
+    for (const item of updatedList) {
+      const existing = currentMap.get(item.id);
+      if (!existing || JSON.stringify(existing) !== JSON.stringify(item)) {
+        await upsertDocument('orders', item);
+      }
+    }
+    for (const item of orders) {
+      if (!updatedMap.has(item.id)) {
+        await removeDocument('orders', item.id);
+      }
     }
   };
 
-  const handleUpdateLeads = (updatedList: Lead[]) => {
-    setLeads(updatedList);
-    try {
-      localStorage.setItem('ug_leads', JSON.stringify(updatedList));
-    } catch (e) {
-      console.warn('LocalStorage write failed', e);
+  const handleUpdateLeads = async (updatedList: Lead[]) => {
+    const currentMap = new Map(leads.map(l => [l.id, l]));
+    const updatedMap = new Map(updatedList.map(l => [l.id, l]));
+
+    for (const item of updatedList) {
+      const existing = currentMap.get(item.id);
+      if (!existing || JSON.stringify(existing) !== JSON.stringify(item)) {
+        await upsertDocument('leads', item);
+      }
+    }
+    for (const item of leads) {
+      if (!updatedMap.has(item.id)) {
+        await removeDocument('leads', item.id);
+      }
     }
   };
 
-  const handleUpdateTickets = (updatedList: SupportTicket[]) => {
-    setTickets(updatedList);
-    try {
-      localStorage.setItem('ug_tickets', JSON.stringify(updatedList));
-    } catch (e) {
-      console.warn('LocalStorage write failed', e);
+  const handleUpdateTickets = async (updatedList: SupportTicket[]) => {
+    const currentMap = new Map(tickets.map(t => [t.id, t]));
+    const updatedMap = new Map(updatedList.map(t => [t.id, t]));
+
+    for (const item of updatedList) {
+      const existing = currentMap.get(item.id);
+      if (!existing || JSON.stringify(existing) !== JSON.stringify(item)) {
+        await upsertDocument('tickets', item);
+      }
+    }
+    for (const item of tickets) {
+      if (!updatedMap.has(item.id)) {
+        await removeDocument('tickets', item.id);
+      }
     }
   };
 
-  const handleUpdateBookings = (updatedList: ServiceBooking[]) => {
-    setBookings(updatedList);
-    try {
-      localStorage.setItem('ug_bookings', JSON.stringify(updatedList));
-    } catch (e) {
-      console.warn('LocalStorage write failed', e);
+  const handleUpdateBookings = async (updatedList: ServiceBooking[]) => {
+    const currentMap = new Map(bookings.map(b => [b.id, b]));
+    const updatedMap = new Map(updatedList.map(b => [b.id, b]));
+
+    for (const item of updatedList) {
+      const existing = currentMap.get(item.id);
+      if (!existing || JSON.stringify(existing) !== JSON.stringify(item)) {
+        await upsertDocument('bookings', item);
+      }
+    }
+    for (const item of bookings) {
+      if (!updatedMap.has(item.id)) {
+        await removeDocument('bookings', item.id);
+      }
     }
   };
 
-  const handleUpdateBlogs = (updatedList: any[]) => {
-    setBlogs(updatedList);
-    try {
-      localStorage.setItem('ug_blogs', JSON.stringify(updatedList));
-    } catch (e) {
-      console.warn('LocalStorage write failed', e);
+  const handleUpdateBlogs = async (updatedList: any[]) => {
+    const currentMap = new Map(blogs.map(b => [b.id, b]));
+    const updatedMap = new Map(updatedList.map(b => [b.id, b]));
+
+    for (const item of updatedList) {
+      const existing = currentMap.get(item.id);
+      if (!existing || JSON.stringify(existing) !== JSON.stringify(item)) {
+        await upsertDocument('blogs', item);
+      }
+    }
+    for (const item of blogs) {
+      if (!updatedMap.has(item.id)) {
+        await removeDocument('blogs', item.id);
+      }
     }
   };
 
-  const handleUpdateGalleryItems = (updatedList: GalleryItem[]) => {
-    setGalleryItems(updatedList);
-    try {
-      localStorage.setItem('ug_gallery', JSON.stringify(updatedList));
-    } catch (e) {
-      console.warn('LocalStorage write failed', e);
+  const handleUpdateGalleryItems = async (updatedList: GalleryItem[]) => {
+    const currentMap = new Map(galleryItems.map(g => [g.id, g]));
+    const updatedMap = new Map(updatedList.map(g => [g.id, g]));
+
+    for (const item of updatedList) {
+      const existing = currentMap.get(item.id);
+      if (!existing || JSON.stringify(existing) !== JSON.stringify(item)) {
+        await upsertDocument('gallery', item);
+      }
+    }
+    for (const item of galleryItems) {
+      if (!updatedMap.has(item.id)) {
+        await removeDocument('gallery', item.id);
+      }
     }
   };
 

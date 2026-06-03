@@ -1,0 +1,152 @@
+{
+  "entities": {
+    "Product": {
+      "title": "Product",
+      "description": "Retail store product catalog items.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "brand": { "type": "string" },
+        "category": { "type": "string" },
+        "price": { "type": "number" },
+        "originalPrice": { "type": "number" },
+        "description": { "type": "string" },
+        "specs": { "type": "array" },
+        "image": { "type": "string" },
+        "stockStatus": { "type": "string" },
+        "quantity": { "type": "number" },
+        "notifyPhoneNumbers": { "type": "array" }
+      },
+      "required": ["id", "name", "brand", "category", "price", "description", "image", "stockStatus", "quantity"]
+    },
+    "GalleryItem": {
+      "title": "GalleryItem",
+      "description": "A portfolio showroom configuration showcase.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "category": { "type": "string" },
+        "image": { "type": "string" },
+        "beforeImage": { "type": "string" },
+        "caption": { "type": "string" }
+      },
+      "required": ["id", "title", "category", "image"]
+    },
+    "BlogPost": {
+      "title": "BlogPost",
+      "description": "Educational tech blogs and customer tutorials.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "excerpt": { "type": "string" },
+        "body": { "type": "string" },
+        "category": { "type": "string" },
+        "date": { "type": "string" },
+        "image": { "type": "string" },
+        "author": { "type": "string" },
+        "shares": { "type": "number" }
+      },
+      "required": ["id", "title", "excerpt", "body", "category", "date", "image", "author", "shares"]
+    },
+    "Lead": {
+      "title": "Lead",
+      "description": "Incoming prospective customer contacts.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "phone": { "type": "string" },
+        "email": { "type": "string" },
+        "purpose": { "type": "string" },
+        "message": { "type": "string" },
+        "date": { "type": "string" },
+        "status": { "type": "string" },
+        "notes": { "type": "string" }
+      },
+      "required": ["id", "name", "phone", "email", "purpose", "message", "date", "status"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "Customer retail purchase order records.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "customerName": { "type": "string" },
+        "customerPhone": { "type": "string" },
+        "items": { "type": "array" },
+        "subtotal": { "type": "number" },
+        "status": { "type": "string" },
+        "date": { "type": "string" },
+        "notes": { "type": "string" }
+      },
+      "required": ["id", "customerName", "customerPhone", "items", "subtotal", "status", "date"]
+    },
+    "ServiceBooking": {
+      "title": "ServiceBooking",
+      "description": "Field installation and technical service bookings.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "serviceName": { "type": "string" },
+        "date": { "type": "string" },
+        "customerName": { "type": "string" },
+        "customerPhone": { "type": "string" },
+        "location": { "type": "string" },
+        "details": { "type": "string" },
+        "status": { "type": "string" }
+      },
+      "required": ["id", "serviceName", "date", "customerName", "customerPhone", "location", "details", "status"]
+    },
+    "SupportTicket": {
+      "title": "SupportTicket",
+      "description": "Post-sale support, repair, and warranty claim tickets.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "referenceNumber": { "type": "string" },
+        "customerName": { "type": "string" },
+        "customerPhone": { "type": "string" },
+        "issueType": { "type": "string" },
+        "description": { "type": "string" },
+        "image": { "type": "string" },
+        "status": { "type": "string" },
+        "lastUpdated": { "type": "string" },
+        "date": { "type": "string" }
+      },
+      "required": ["id", "referenceNumber", "customerName", "customerPhone", "issueType", "description", "status", "lastUpdated", "date"]
+    }
+  },
+  "firestore": {
+    "/products/{productId}": {
+      "schema": "Product",
+      "description": "Store-wide retail product inventory items."
+    },
+    "/gallery/{galleryId}": {
+      "schema": "GalleryItem",
+      "description": "Visual portoflio showcase of showroom setups and installations."
+    },
+    "/blogs/{blogId}": {
+      "schema": "BlogPost",
+      "description": "Directly readable technical tips and brand announcements."
+    },
+    "/leads/{leadId}": {
+      "schema": "Lead",
+      "description": "Captured customer leads for admin/staff response."
+    },
+    "/orders/{orderId}": {
+      "schema": "Order",
+      "description": "Processed sales, orders, and custom receipts."
+    },
+    "/bookings/{bookingId}": {
+      "schema": "ServiceBooking",
+      "description": "Dynamic tracking of technical installations and client maintenance."
+    },
+    "/tickets/{ticketId}": {
+      "schema": "SupportTicket",
+      "description": "Fault-reporting, warranty claims, and status feedback logs."
+    }
+  }
+}
