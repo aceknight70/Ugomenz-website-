@@ -13,7 +13,7 @@ service cloud.firestore {
     }
 
     function isStandardUrl(url) {
-      return url is string && url.size() <= 2048 && (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:image/') || url.startsWith('data:video/'));
+      return url is string && url.size() <= 950000;
     }
 
     // Schema Validation Helpers

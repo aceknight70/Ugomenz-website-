@@ -6,6 +6,54 @@ import {
 } from 'lucide-react';
 import { Product, Order, Lead, SupportTicket, ServiceBooking, ActiveStaffSession, GalleryItem, isVideoSrc } from '../types';
 
+const compressImage = (base64Str: string, maxWidth = 820, maxHeight = 820, quality = 0.75): Promise<string> => {
+  return new Promise((resolve) => {
+    if (!base64Str.startsWith('data:image/')) {
+      resolve(base64Str);
+      return;
+    }
+    const img = new window.Image();
+    img.onload = () => {
+      let width = img.width;
+      let height = img.height;
+
+      if (width > height) {
+        if (width > maxWidth) {
+          height = Math.round((height * maxWidth) / width);
+          width = maxWidth;
+        }
+      } else {
+        if (height > maxHeight) {
+          width = Math.round((width * maxHeight) / height);
+          height = maxHeight;
+        }
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        resolve(base64Str);
+        return;
+      }
+
+      ctx.drawImage(img, 0, 0, width, height);
+      try {
+        const compressed = canvas.toDataURL('image/jpeg', quality);
+        resolve(compressed);
+      } catch (err) {
+        resolve(base64Str);
+      }
+    };
+    img.onerror = () => {
+      resolve(base64Str);
+    };
+    img.src = base64Str;
+  });
+};
+
 interface StaffPortalViewProps {
   products: Product[];
   orders: Order[];
@@ -473,9 +521,10 @@ export default function StaffPortalView({
                                   if (e.target.files && e.target.files[0]) {
                                     const file = e.target.files[0];
                                     const reader = new FileReader();
-                                    reader.onloadend = () => {
+                                    reader.onloadend = async () => {
                                       if (typeof reader.result === 'string') {
-                                        setEditingImage(reader.result);
+                                        const compressed = await compressImage(reader.result);
+                                        setEditingImage(compressed);
                                       }
                                     };
                                     reader.readAsDataURL(file);
@@ -689,9 +738,10 @@ export default function StaffPortalView({
                       if (e.dataTransfer.files && e.dataTransfer.files[0]) {
                         const file = e.dataTransfer.files[0];
                         const reader = new FileReader();
-                        reader.onloadend = () => {
+                        reader.onloadend = async () => {
                           if (typeof reader.result === 'string') {
-                            setNewProdImage(reader.result);
+                            const compressed = await compressImage(reader.result);
+                            setNewProdImage(compressed);
                           }
                         };
                         reader.readAsDataURL(file);
@@ -709,9 +759,10 @@ export default function StaffPortalView({
                         if (e.target.files && e.target.files[0]) {
                           const file = e.target.files[0];
                           const reader = new FileReader();
-                          reader.onloadend = () => {
+                          reader.onloadend = async () => {
                             if (typeof reader.result === 'string') {
-                              setNewProdImage(reader.result);
+                              const compressed = await compressImage(reader.result);
+                              setNewProdImage(compressed);
                             }
                           };
                           reader.readAsDataURL(file);
@@ -1084,9 +1135,10 @@ export default function StaffPortalView({
                       if (e.dataTransfer.files && e.dataTransfer.files[0]) {
                         const file = e.dataTransfer.files[0];
                         const reader = new FileReader();
-                        reader.onloadend = () => {
+                        reader.onloadend = async () => {
                           if (typeof reader.result === 'string') {
-                            setNewGalImage(reader.result);
+                            const compressed = await compressImage(reader.result);
+                            setNewGalImage(compressed);
                           }
                         };
                         reader.readAsDataURL(file);
@@ -1104,9 +1156,10 @@ export default function StaffPortalView({
                         if (e.target.files && e.target.files[0]) {
                           const file = e.target.files[0];
                           const reader = new FileReader();
-                          reader.onloadend = () => {
+                          reader.onloadend = async () => {
                             if (typeof reader.result === 'string') {
-                              setNewGalImage(reader.result);
+                              const compressed = await compressImage(reader.result);
+                              setNewGalImage(compressed);
                             }
                           };
                           reader.readAsDataURL(file);
