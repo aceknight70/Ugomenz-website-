@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Award, MessageCircle, ChevronRight, X, Sparkles, AlertCircle, ShoppingCart } from 'lucide-react';
-import { Product } from '../types';
+import { Product, isVideoSrc } from '../types';
 
 interface BrandsViewProps {
   products: Product[];
@@ -180,7 +180,11 @@ export default function BrandsView({ products, onAddToCart }: BrandsViewProps) {
                 {products.filter(p => p.brand.toLowerCase() === selectedBrand.toLowerCase()).map(p => (
                   <div key={p.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 border border-gray-250 bg-gray-50/50 rounded-2xl group">
                     <div className="flex items-center gap-3">
+                      {isVideoSrc(p.image) ? (
+                      <video src={p.image} className="w-16 h-12 object-cover rounded-lg border border-gray-200 bg-black" autoPlay loop muted playsInline />
+                    ) : (
                       <img src={p.image} className="w-16 h-12 object-cover rounded-lg border border-gray-200" referrerPolicy="no-referrer" />
+                    )}
                       <div>
                         <h4 className="text-xs font-bold text-gray-900 group-hover:text-brand-orange transition-colors">
                           {p.name}

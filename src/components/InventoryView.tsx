@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import {
   Check, AlertTriangle, XSquare, Search, SlidersHorizontal, BellRing, Eye, Edit3, Save, CheckCircle
 } from 'lucide-react';
-import { Product, ActiveStaffSession } from '../types';
+import { Product, ActiveStaffSession, isVideoSrc } from '../types';
 
 interface InventoryViewProps {
   products: Product[];
@@ -188,7 +188,11 @@ export default function InventoryView({
                     </td>
                     <td className="p-4">
                       <div className="flex items-center gap-3">
-                        <img src={p.image} className="w-10 h-8 object-cover rounded border border-gray-200 shrink-0" referrerPolicy="no-referrer" />
+                        {isVideoSrc(p.image) ? (
+                          <video src={p.image} className="w-10 h-8 object-cover rounded border border-gray-200 shrink-0 bg-black" autoPlay loop muted playsInline />
+                        ) : (
+                          <img src={p.image} className="w-10 h-8 object-cover rounded border border-gray-200 shrink-0" referrerPolicy="no-referrer" />
+                        )}
                         <div>
                           <p className="font-semibold text-brand-black">{p.name}</p>
                           <p className="text-[10px] text-gray-400 mt-0.5 truncate max-w-sm">{p.specs.slice(0, 2).join(' • ')}</p>

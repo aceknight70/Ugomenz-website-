@@ -33,7 +33,7 @@ import {
   SHADOW_COURSES
 } from './initialData';
 
-import { Product, Order, Lead, SupportTicket, ServiceBooking, ActiveStaffSession } from './types';
+import { Product, Order, Lead, SupportTicket, ServiceBooking, GalleryItem, ActiveStaffSession } from './types';
 
 export default function App() {
   // Current visible page (17 available pages mapped via activeView)
@@ -48,6 +48,7 @@ export default function App() {
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
   const [bookings, setBookings] = useState<ServiceBooking[]>([]);
   const [blogs, setBlogs] = useState<any[]>([]);
+  const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([]);
 
   // Shopping Cart state
   const [cartItems, setCartItems] = useState<{ product: Product; quantity: number }[]>([]);
@@ -105,6 +106,14 @@ export default function App() {
       localStorage.setItem('ug_blogs', JSON.stringify(INITIAL_BLOG_POSTS));
     }
 
+    // Gallery Items
+    const localGallery = localStorage.getItem('ug_gallery');
+    if (localGallery) setGalleryItems(JSON.parse(localGallery));
+    else {
+      setGalleryItems(INITIAL_GALLERY_ITEMS);
+      localStorage.setItem('ug_gallery', JSON.stringify(INITIAL_GALLERY_ITEMS));
+    }
+
     // Active Cart
     const localCart = localStorage.getItem('ug_cart');
     if (localCart) setCartItems(JSON.parse(localCart));
@@ -118,32 +127,65 @@ export default function App() {
   // Common status update helper triggers
   const handleUpdateProducts = (updatedList: Product[]) => {
     setProducts(updatedList);
-    localStorage.setItem('ug_products', JSON.stringify(updatedList));
+    try {
+      localStorage.setItem('ug_products', JSON.stringify(updatedList));
+    } catch (e) {
+      console.warn('LocalStorage limit exceeded. Saved in active React state instead.', e);
+    }
   };
 
   const handleUpdateOrders = (updatedList: Order[]) => {
     setOrders(updatedList);
-    localStorage.setItem('ug_orders', JSON.stringify(updatedList));
+    try {
+      localStorage.setItem('ug_orders', JSON.stringify(updatedList));
+    } catch (e) {
+      console.warn('LocalStorage write failed', e);
+    }
   };
 
   const handleUpdateLeads = (updatedList: Lead[]) => {
     setLeads(updatedList);
-    localStorage.setItem('ug_leads', JSON.stringify(updatedList));
+    try {
+      localStorage.setItem('ug_leads', JSON.stringify(updatedList));
+    } catch (e) {
+      console.warn('LocalStorage write failed', e);
+    }
   };
 
   const handleUpdateTickets = (updatedList: SupportTicket[]) => {
     setTickets(updatedList);
-    localStorage.setItem('ug_tickets', JSON.stringify(updatedList));
+    try {
+      localStorage.setItem('ug_tickets', JSON.stringify(updatedList));
+    } catch (e) {
+      console.warn('LocalStorage write failed', e);
+    }
   };
 
   const handleUpdateBookings = (updatedList: ServiceBooking[]) => {
     setBookings(updatedList);
-    localStorage.setItem('ug_bookings', JSON.stringify(updatedList));
+    try {
+      localStorage.setItem('ug_bookings', JSON.stringify(updatedList));
+    } catch (e) {
+      console.warn('LocalStorage write failed', e);
+    }
   };
 
   const handleUpdateBlogs = (updatedList: any[]) => {
     setBlogs(updatedList);
-    localStorage.setItem('ug_blogs', JSON.stringify(updatedList));
+    try {
+      localStorage.setItem('ug_blogs', JSON.stringify(updatedList));
+    } catch (e) {
+      console.warn('LocalStorage write failed', e);
+    }
+  };
+
+  const handleUpdateGalleryItems = (updatedList: GalleryItem[]) => {
+    setGalleryItems(updatedList);
+    try {
+      localStorage.setItem('ug_gallery', JSON.stringify(updatedList));
+    } catch (e) {
+      console.warn('LocalStorage write failed', e);
+    }
   };
 
   // Cart operations
@@ -243,7 +285,7 @@ export default function App() {
         return (
           <HomeView
             products={products}
-            galleryItems={INITIAL_GALLERY_ITEMS}
+            galleryItems={galleryItems}
             blogPosts={blogs}
             onAddToCart={handleAddToCart}
             onNavigate={setActiveView}
@@ -284,7 +326,7 @@ export default function App() {
           />
         );
       case 'gallery':
-        return <GalleryView galleryItems={INITIAL_GALLERY_ITEMS} />;
+        return <GalleryView galleryItems={galleryItems} />;
       case 'about':
         return <AboutView onNavigate={setActiveView} />;
       case 'services':
@@ -327,12 +369,14 @@ export default function App() {
             leads={leads}
             tickets={tickets}
             bookings={bookings}
+            galleryItems={galleryItems}
             staffSession={staffSession}
             onUpdateProducts={handleUpdateProducts}
             onUpdateOrders={handleUpdateOrders}
             onUpdateLeads={handleUpdateLeads}
             onUpdateTickets={handleUpdateTickets}
             onUpdateBookings={handleUpdateBookings}
+            onUpdateGalleryItems={handleUpdateGalleryItems}
           />
         );
       case 'contact':
@@ -341,7 +385,7 @@ export default function App() {
         return (
           <HomeView
             products={products}
-            galleryItems={INITIAL_GALLERY_ITEMS}
+            galleryItems={galleryItems}
             blogPosts={blogs}
             onAddToCart={handleAddToCart}
             onNavigate={setActiveView}

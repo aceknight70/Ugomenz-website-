@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Newspaper, Search, Share2, Calendar, User, Eye, ArrowLeft, Mail, MessageCircle, X } from 'lucide-react';
-import { BlogPost, Product } from '../types';
+import { BlogPost, Product, isVideoSrc } from '../types';
 
 interface BlogViewProps {
   posts: BlogPost[];
@@ -107,7 +107,11 @@ export default function BlogView({ posts, products, onAddToCart, onAddPost, staf
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {products.slice(0, 2).map(p => (
                 <div key={p.id} className="bg-gray-55 p-3 rounded-2xl border border-gray-200 bg-gray-50/50 flex gap-3 items-center">
-                  <img src={p.image} className="w-16 h-12 object-cover rounded-lg border border-gray-200" referrerPolicy="no-referrer" />
+                  {isVideoSrc(p.image) ? (
+                    <video src={p.image} className="w-16 h-12 object-cover rounded-lg border border-gray-200 bg-black" autoPlay loop muted playsInline />
+                  ) : (
+                    <img src={p.image} className="w-16 h-12 object-cover rounded-lg border border-gray-250" referrerPolicy="no-referrer" />
+                  )}
                   <div className="flex-1 min-w-0">
                     <p className="font-bold text-xs text-gray-800 truncate">{p.name}</p>
                     <p className="text-[10px] text-gray-500 mt-0.5 font-mono">₦{p.price.toLocaleString()}</p>

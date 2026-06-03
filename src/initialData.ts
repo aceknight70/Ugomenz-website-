@@ -245,6 +245,62 @@ export const INITIAL_GALLERY_ITEMS: GalleryItem[] = [
     category: 'Event Setups',
     image: 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?auto=format&fit=crop&w=600&q=80',
     caption: 'Full-stage line installations. Tuned JVC systems, customized wireless distribution links, and overhead display screens for maximum audience visibility.'
+  },
+  {
+    id: 'gal-4',
+    title: 'meWe Electronics Showroom & Sound Towers - Effurun, Warri',
+    category: 'Installations',
+    image: 'https://images.unsplash.com/photo-1461151304267-38535e780c79?auto=format&fit=crop&w=600&q=80',
+    caption: 'Vibrant yellow store interior displaying authorized meWe smart flat-screen TVs, high-performance sound towers, and customized cooling systems.'
+  },
+  {
+    id: 'gal-5',
+    title: 'Double-Boiler Cookware & Kitchenware Display Shelves',
+    category: 'Customer Spaces',
+    image: 'https://images.unsplash.com/photo-1584269600464-37b1b58a9fe7?auto=format&fit=crop&w=600&q=80',
+    caption: 'Comprehensive collection of cast-aluminum and premium granite-coated cookware sets, modern hot pots, and high-efficiency gas cookers at our Warri showroom.'
+  },
+  {
+    id: 'gal-6',
+    title: 'Samsung Neo QLED Flagship Demonstration Lounge',
+    category: 'Installations',
+    image: 'https://images.unsplash.com/photo-1593305841991-05c297ba4575?auto=format&fit=crop&w=600&q=80',
+    caption: 'A professional installation panel highlighting high-end Samsung Neo QLED showcases with SmartThings hub integration and AI Energy Mode diagnostics.'
+  },
+  {
+    id: 'gal-7',
+    title: 'Home Appliances Corridor (Washing Machines & Air Conditioners)',
+    category: 'Installations',
+    image: 'https://images.unsplash.com/photo-1545173168-9f1947eebd01?auto=format&fit=crop&w=600&q=80',
+    caption: 'Sleek, organized corridor displaying front-load and top-load modern washing machines, laundry options, and smart split-unit air conditioners.'
+  },
+  {
+    id: 'gal-8',
+    title: 'Sumec Firman Power Solutions Depot',
+    category: 'Installations',
+    image: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=600&q=80',
+    caption: 'Our authorized heavy-duty petrol and diesel generators section, highlighting durable Sumec Firman models for uninterrupted domestic and business power.'
+  },
+  {
+    id: 'gal-9',
+    title: 'TCL & Nexus Multi-Door Stainless Refrigerator Wing',
+    category: 'Customer Spaces',
+    image: 'https://images.unsplash.com/photo-1571175432247-5b86d5828cd8?auto=format&fit=crop&w=600&q=80',
+    caption: 'Displaying premium double-door and multi-door refrigerators, chest freezers, and luxury built-in gas hobs for state-of-the-art kitchen setups.'
+  },
+  {
+    id: 'gal-10',
+    title: 'meWe & Kenwood Domestic Kitchen Appliances Display',
+    category: 'Customer Spaces',
+    image: 'https://images.unsplash.com/photo-1578643463396-0997cb5328c1?auto=format&fit=crop&w=600&q=80',
+    caption: 'Shelving layout of essential smart kitchen appliances, including double-wall blenders, food processors, electric kitting kettles, and high-capacity ovens.'
+  },
+  {
+    id: 'gal-11',
+    title: 'Store Operations & Customer Waiting Suite',
+    category: 'Office Setups',
+    image: 'https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&w=600&q=80',
+    caption: 'Our relaxed customer service consultation area. Features comfortable leather couches, smart home theatre demo systems, and layout coordinators ready to handle design projects.'
   }
 ];
 

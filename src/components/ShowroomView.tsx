@@ -4,7 +4,7 @@ import {
   Smartphone, Tv, Volume2, Camera, Compass, Grid, Search, SlidersHorizontal,
   ChevronDown, ArrowUpDown, Check, MessageCircle, ShoppingCart, View, X
 } from 'lucide-react';
-import { Product } from '../types';
+import { Product, isVideoSrc } from '../types';
 
 interface ShowroomViewProps {
   products: Product[];
@@ -221,13 +221,24 @@ export default function ShowroomView({
             </div>
 
             {/* Visual Header */}
-            <div className="relative overflow-hidden aspect-video bg-gray-100">
-              <img
-                src={p.image}
-                alt={p.name}
-                referrerPolicy="no-referrer"
-                className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-300"
-              />
+            <div className="relative overflow-hidden aspect-video bg-gray-100 flex items-center justify-center">
+              {isVideoSrc(p.image) ? (
+                <video
+                  src={p.image}
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-300 bg-black"
+                />
+              ) : (
+                <img
+                  src={p.image}
+                  alt={p.name}
+                  referrerPolicy="no-referrer"
+                  className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-300"
+                />
+              )}
               <div
                 onClick={() => setActiveDetailProduct(p)}
                 className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
@@ -329,13 +340,25 @@ export default function ShowroomView({
 
               <div className="grid grid-cols-1 md:grid-cols-2">
                 {/* Left side Image visualizer */}
-                <div className="h-64 md:h-full relative overflow-hidden bg-gray-50">
-                  <img
-                    src={activeDetailProduct.image}
-                    alt={activeDetailProduct.name}
-                    referrerPolicy="no-referrer"
-                    className="w-full h-full object-cover"
-                  />
+                <div className="h-64 md:h-full relative overflow-hidden bg-gray-50 flex items-center justify-center">
+                  {isVideoSrc(activeDetailProduct.image) ? (
+                    <video
+                      src={activeDetailProduct.image}
+                      controls
+                      autoPlay
+                      loop
+                      muted={false}
+                      playsInline
+                      className="w-full h-full object-cover bg-black"
+                    />
+                  ) : (
+                    <img
+                      src={activeDetailProduct.image}
+                      alt={activeDetailProduct.name}
+                      referrerPolicy="no-referrer"
+                      className="w-full h-full object-cover"
+                    />
+                  )}
                   <div className="absolute top-4 left-4 bg-brand-orange text-white text-[9px] font-bold font-mono tracking-widest px-3 py-1 rounded-full uppercase">
                     {activeDetailProduct.brand} • Authorized
                   </div>
@@ -386,7 +409,11 @@ export default function ShowroomView({
                             onClick={() => setActiveDetailProduct(rp)}
                             className="bg-gray-50 p-2 rounded-lg border border-gray-150 hover:border-brand-orange cursor-pointer transition-colors"
                           >
-                            <img src={rp.image} className="w-full aspect-video object-cover rounded" referrerPolicy="no-referrer" />
+                            {isVideoSrc(rp.image) ? (
+                              <video src={rp.image} className="w-full aspect-video object-cover rounded bg-black" autoPlay loop muted playsInline />
+                            ) : (
+                              <img src={rp.image} className="w-full aspect-video object-cover rounded" referrerPolicy="no-referrer" />
+                            )}
                             <p className="text-[9px] font-bold mt-1 text-gray-700 truncate">{rp.name}</p>
                             <p className="text-[9px] font-mono text-gray-500 font-semibold mt-0.5">₦{rp.price.toLocaleString()}</p>
                           </div>

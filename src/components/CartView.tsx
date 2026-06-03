@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { ShoppingBag, Trash2, ArrowLeft, MessageSquareDot, ShieldCheck, CheckCircle } from 'lucide-react';
-import { Product, OrderItem, Order } from '../types';
+import { Product, OrderItem, Order, isVideoSrc } from '../types';
 
 interface CartViewProps {
   cartItems: { product: Product; quantity: number }[];
@@ -156,7 +156,11 @@ export default function CartView({
                   className="bg-white p-4 rounded-2xl border border-gray-200 flex items-center justify-between gap-4 shadow-xs"
                 >
                   <div className="flex items-center gap-3">
-                    <img src={item.product.image} className="w-16 h-12 object-cover rounded-lg border border-gray-150" referrerPolicy="no-referrer" />
+                    {isVideoSrc(item.product.image) ? (
+                      <video src={item.product.image} className="w-16 h-12 object-cover rounded-lg border border-gray-150 bg-black" autoPlay loop muted playsInline />
+                    ) : (
+                      <img src={item.product.image} className="w-16 h-12 object-cover rounded-lg border border-gray-150" referrerPolicy="no-referrer" />
+                    )}
                     <div>
                       <span className="text-[9px] font-mono tracking-wider text-brand-orange font-bold uppercase">{item.product.brand}</span>
                       <h4 className="font-semibold text-xs text-brand-black leading-tight mt-0.5">{item.product.name}</h4>

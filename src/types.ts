@@ -107,3 +107,16 @@ export interface ShadowCourse {
   intakeDates: string[];
   availableSlots: number;
 }
+
+export const isVideoSrc = (src: string | undefined): boolean => {
+  if (!src) return false;
+  return (
+    src.startsWith('data:video/') ||
+    src.includes('video/mp4') ||
+    src.includes('video/webm') ||
+    src.includes('video/ogg') ||
+    src.endsWith('.mp4') ||
+    src.endsWith('.webm') ||
+    src.endsWith('.ogg')
+  );
+};

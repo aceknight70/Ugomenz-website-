@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import {
   KeyRound, Users, UserPlus, ShoppingBag, Plus, Trash2, Edit3, Sliders, ToggleLeft, ToggleRight,
-  TrendingUp, Activity, Inbox, MailCheck, BellRing, Settings, HelpCircle, Save, PlusCircle, AlertCircle, AlertTriangle
+  TrendingUp, Activity, Inbox, MailCheck, BellRing, Settings, HelpCircle, Save, PlusCircle, AlertCircle, AlertTriangle,
+  UploadCloud, X, Image
 } from 'lucide-react';
-import { Product, Order, Lead, SupportTicket, ServiceBooking, ActiveStaffSession } from '../types';
+import { Product, Order, Lead, SupportTicket, ServiceBooking, ActiveStaffSession, GalleryItem, isVideoSrc } from '../types';
 
 interface StaffPortalViewProps {
   products: Product[];
@@ -11,12 +12,14 @@ interface StaffPortalViewProps {
   leads: Lead[];
   tickets: SupportTicket[];
   bookings: ServiceBooking[];
+  galleryItems: GalleryItem[];
   staffSession: ActiveStaffSession | null;
   onUpdateProducts: (updatedList: Product[]) => void;
   onUpdateOrders: (updatedList: Order[]) => void;
   onUpdateLeads: (updatedList: Lead[]) => void;
   onUpdateTickets: (updatedList: SupportTicket[]) => void;
   onUpdateBookings: (updatedList: ServiceBooking[]) => void;
+  onUpdateGalleryItems: (updatedList: GalleryItem[]) => void;
 }
 
 export default function StaffPortalView({
@@ -25,15 +28,17 @@ export default function StaffPortalView({
   leads,
   tickets,
   bookings,
+  galleryItems,
   staffSession,
   onUpdateProducts,
   onUpdateOrders,
   onUpdateLeads,
   onUpdateTickets,
-  onUpdateBookings
+  onUpdateBookings,
+  onUpdateGalleryItems
 }: StaffPortalViewProps) {
   // Navigation tabs within Staff Portal
-  const [activePortalTab, setActivePortalTab] = useState<'Overview' | 'Catalog' | 'Leads' | 'Orders' | 'ServiceBookings'>('Overview');
+  const [activePortalTab, setActivePortalTab] = useState<'Overview' | 'Catalog' | 'Leads' | 'Orders' | 'ServiceBookings' | 'Gallery'>('Overview');
 
   // FORM state for adding product (Part of CMS)
   const [newProdName, setNewProdName] = useState('');
@@ -44,11 +49,23 @@ export default function StaffPortalView({
   const [newProdDesc, setNewProdDesc] = useState('');
   const [newProdImage, setNewProdImage] = useState('');
   const [newProdSpecs, setNewProdSpecs] = useState('');
+
+  // FORM state for adding gallery item
+  const [newGalTitle, setNewGalTitle] = useState('');
+  const [newGalCategory, setNewGalCategory] = useState<'Home Setups' | 'Office Setups' | 'Event Setups' | 'Installations' | 'Customer Spaces'>('Installations');
+  const [newGalImage, setNewGalImage] = useState('');
+  const [newGalCaption, setNewGalCaption] = useState('');
   
   // States for Editing existing product
   const [editingProdId, setEditingProdId] = useState<string | null>(null);
   const [editingPrice, setEditingPrice] = useState<number>(0);
   const [editingQty, setEditingQty] = useState<number>(0);
+  const [editingName, setEditingName] = useState('');
+  const [editingBrand, setEditingBrand] = useState('');
+  const [editingCategory, setEditingCategory] = useState('');
+  const [editingDesc, setEditingDesc] = useState('');
+  const [editingImage, setEditingImage] = useState('');
+  const [editingSpecs, setEditingSpecs] = useState('');
 
   // Quick statistics
   const newLeadsCount = leads.filter(l => l.status === 'New').length;
@@ -59,7 +76,14 @@ export default function StaffPortalView({
 
   const handleAddNewProductSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newProdName || !newProdPrice || !newProdImage) return;
+    if (!newProdName.trim()) {
+      alert('Please fill out the Product Model Name!');
+      return;
+    }
+    if (!newProdImage) {
+      alert('Please upload a Showcase Photo/Video File!');
+      return;
+    }
 
     // Convert comma specs to list representation
     const specArray = newProdSpecs ? newProdSpecs.split(',').map(s => s.trim()) : ['Authorized Direct Stock'];
@@ -102,6 +126,15 @@ export default function StaffPortalView({
   };
 
   const handleSaveProductEdit = (pId: string) => {
+    if (!editingName.trim()) {
+      alert('Product Model Name cannot be empty!');
+      return;
+    }
+    if (!editingImage) {
+      alert('Please upload a Product Showcase Photo/Video!');
+      return;
+    }
+
     const updated = products.map(p => {
       if (p.id === pId) {
         let detStatus: Product['stockStatus'] = 'In Stock';
@@ -110,15 +143,23 @@ export default function StaffPortalView({
 
         return {
           ...p,
+          name: editingName,
+          brand: editingBrand,
+          category: editingCategory,
           price: editingPrice,
           quantity: editingQty,
+          description: editingDesc,
+          image: editingImage,
+          specs: editingSpecs ? editingSpecs.split(',').map(s => s.trim()) : p.specs,
           stockStatus: detStatus
         };
       }
       return p;
     });
+
     onUpdateProducts(updated);
     setEditingProdId(null);
+    alert('Product details and video/photo saved successfully!');
   };
 
   // Status Toggles for Lead & Booking CRM pipelines
@@ -135,6 +176,42 @@ export default function StaffPortalView({
   const handleWhatsAppContactLead = (name: string, phone: string, purpose: string) => {
     const responseMsg = `Hello ${name}! This is the Ugomenz technical desk responding to your "${purpose}" enquiry on our platform. Let us discuss specifications!`;
     window.open(`https://wa.me/${phone.replace(/^0/, '234')}?text=${encodeURIComponent(responseMsg)}`, '_blank');
+  };
+
+  const handleAddNewGalleryItem = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newGalTitle.trim()) {
+      alert('Please fill out the Showcase Title!');
+      return;
+    }
+    if (!newGalImage) {
+      alert('Please upload a Showcase Photo/Video file!');
+      return;
+    }
+
+    const newGalItem: GalleryItem = {
+      id: `gal-${Date.now()}`,
+      title: newGalTitle,
+      category: newGalCategory,
+      image: newGalImage,
+      caption: newGalCaption
+    };
+
+    onUpdateGalleryItems([newGalItem, ...galleryItems]);
+
+    // Reset Form Fields
+    setNewGalTitle('');
+    setNewGalCategory('Installations');
+    setNewGalImage('');
+    setNewGalCaption('');
+
+    alert('Showcase addition successful! Linked into the central gallery portfolio room instantly.');
+  };
+
+  const handleDeleteGalleryItem = (galId: string) => {
+    if (!confirm('Are you certain you wish to delete this gallery item?')) return;
+    const filtered = galleryItems.filter(g => g.id !== galId);
+    onUpdateGalleryItems(filtered);
   };
 
   if (!staffSession) {
@@ -154,6 +231,7 @@ export default function StaffPortalView({
   const portalTabs = [
     { id: 'Overview' as const, label: 'Control Overview', icon: Activity },
     { id: 'Catalog' as const, label: 'Store Catalog (CMS)', icon: ShoppingBag },
+    { id: 'Gallery' as const, label: 'Gallery Manager', icon: Image },
     { id: 'Leads' as const, label: 'Leads CRM', icon: Users },
     { id: 'Orders' as const, label: 'Customer Orders', icon: Inbox },
     { id: 'ServiceBookings' as const, label: 'Technical Bookings', icon: Sliders },
@@ -270,55 +348,198 @@ export default function StaffPortalView({
               {products.map(p => {
                 const isEditing = editingProdId === p.id;
 
+                if (isEditing) {
+                  return (
+                    <div key={p.id} className="bg-gray-50 p-5 border-2 border-brand-orange/40 rounded-2xl flex flex-col gap-3 shadow-md relative col-span-1 md:col-span-2">
+                      <div className="flex justify-between items-center border-b pb-2">
+                        <span className="text-[10px] font-bold font-mono text-brand-orange uppercase">Active Editing Model Details</span>
+                        <button type="button" onClick={() => setEditingProdId(null)} className="text-gray-400 hover:text-red-500 transition-colors">
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      <div className="space-y-3.5 text-xs">
+                        <div>
+                          <label className="block text-gray-500 font-bold mb-1">Product Model Name</label>
+                          <input
+                            type="text"
+                            value={editingName}
+                            onChange={(e) => setEditingName(e.target.value)}
+                            className="w-full text-xs p-2.5 border rounded-lg bg-white outline-none focus:border-brand-orange"
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-gray-500 font-bold mb-1">Brand</label>
+                            <select
+                              value={editingBrand}
+                              onChange={(e) => setEditingBrand(e.target.value)}
+                              className="w-full text-xs p-2.5 border rounded-lg bg-white outline-none cursor-pointer"
+                            >
+                              <option value="Samsung">Samsung</option>
+                              <option value="LG">LG</option>
+                              <option value="Sony">Sony</option>
+                              <option value="Hisense">Hisense</option>
+                              <option value="JVC">JVC</option>
+                              <option value="Skyworth">Skyworth</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-gray-500 font-bold mb-1">Category</label>
+                            <select
+                              value={editingCategory}
+                              onChange={(e) => setEditingCategory(e.target.value)}
+                              className="w-full text-xs p-2.5 border rounded-lg bg-white outline-none cursor-pointer"
+                            >
+                              <option value="TVs">TVs</option>
+                              <option value="Home Theaters">Home Theaters</option>
+                              <option value="Sound Systems">Sound Systems</option>
+                              <option value="Cameras">Cameras</option>
+                              <option value="Accessories">Accessories</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-gray-500 font-bold mb-1">Showroom Price (₦)</label>
+                            <input
+                              type="number"
+                              value={editingPrice}
+                              onChange={(e) => setEditingPrice(Math.max(0, parseInt(e.target.value) || 0))}
+                              className="w-full text-xs p-2.5 border rounded-lg bg-white outline-none"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-gray-500 font-bold mb-1">Stock Quantity</label>
+                            <input
+                              type="number"
+                              value={editingQty}
+                              onChange={(e) => setEditingQty(Math.max(0, parseInt(e.target.value) || 0))}
+                              className="w-full text-xs p-2.5 border rounded-lg bg-white outline-none"
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-gray-500 font-bold mb-1">Core Specifications (comma-separated)</label>
+                          <input
+                            type="text"
+                            value={editingSpecs}
+                            onChange={(e) => setEditingSpecs(e.target.value)}
+                            className="w-full text-xs p-2.5 border rounded-lg bg-white outline-none"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-gray-500 font-bold mb-1">Editorial Description</label>
+                          <textarea
+                            rows={2}
+                            value={editingDesc}
+                            onChange={(e) => setEditingDesc(e.target.value)}
+                            className="w-full text-xs p-2.5 border rounded-lg bg-white outline-none resize-none"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-gray-500 font-bold mb-1.5">Change Showcase Media (Natural Upload)</label>
+                          {editingImage ? (
+                            <div className="relative rounded-xl overflow-hidden bg-gray-950 border p-2 flex flex-col items-center justify-center">
+                              {isVideoSrc(editingImage) ? (
+                                <video src={editingImage} className="max-h-32 rounded w-auto object-contain bg-black" controls />
+                              ) : (
+                                <img src={editingImage} alt="Preview" className="max-h-32 rounded w-auto object-contain" referrerPolicy="no-referrer" />
+                              )}
+                              <button
+                                type="button"
+                                onClick={() => setEditingImage('')}
+                                className="absolute top-3 right-3 bg-red-600 hover:bg-red-700 text-white p-1.5 rounded-full shadow-md hover:scale-105 transition-all cursor-pointer flex items-center justify-center border"
+                              >
+                                <X className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          ) : (
+                            <div
+                              onClick={() => document.getElementById(`edit-file-input-${p.id}`)?.click()}
+                              className="border-2 border-dashed border-gray-300 hover:border-brand-orange bg-white rounded-xl p-6 text-center cursor-pointer transition-colors flex flex-col items-center justify-center gap-1.5 select-none"
+                            >
+                              <input
+                                id={`edit-file-input-${p.id}`}
+                                type="file"
+                                accept="image/*,video/*"
+                                className="hidden"
+                                onChange={(e) => {
+                                  if (e.target.files && e.target.files[0]) {
+                                    const file = e.target.files[0];
+                                    const reader = new FileReader();
+                                    reader.onloadend = () => {
+                                      if (typeof reader.result === 'string') {
+                                        setEditingImage(reader.result);
+                                      }
+                                    };
+                                    reader.readAsDataURL(file);
+                                  }
+                                }}
+                              />
+                              <UploadCloud className="w-5 h-5 text-brand-orange" />
+                              <span className="font-bold text-[10px] text-gray-700">Upload new image or video demo</span>
+                              <span className="text-[8px] text-gray-400">Click to browse media files</span>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="flex gap-2.5 pt-2">
+                          <button
+                            type="button"
+                            onClick={() => setEditingProdId(null)}
+                            className="flex-1 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold rounded-lg text-[10px] uppercase transition-colors"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleSaveProductEdit(p.id)}
+                            className="flex-1 py-2.5 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg text-[10px] uppercase transition-colors"
+                          >
+                            Save All Details
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                }
+
                 return (
                   <div key={p.id} className="bg-white p-4 border border-gray-200 rounded-2xl flex gap-3 shadow-xs relative">
-                    <img src={p.image} className="w-16 h-12 object-cover rounded-lg border border-gray-150 shrink-0" referrerPolicy="no-referrer" />
+                    {isVideoSrc(p.image) ? (
+                      <video src={p.image} className="w-16 h-12 object-cover rounded-lg border border-gray-150 shrink-0 bg-black" autoPlay loop muted playsInline />
+                    ) : (
+                      <img src={p.image} className="w-16 h-12 object-cover rounded-lg border border-gray-150 shrink-0" referrerPolicy="no-referrer" />
+                    )}
                     
                     <div className="flex-1 min-w-0">
                       <span className="text-[9px] font-mono uppercase font-bold text-gray-400">{p.brand} ({p.category})</span>
                       <h4 className="font-bold text-xs text-gray-800 leading-tight truncate">{p.name}</h4>
                       
-                      {isEditing ? (
-                        <div className="mt-2 space-y-2.5 bg-gray-50 p-2.5 rounded-lg border">
-                          <div className="flex items-center gap-1.5 text-xs font-mono font-bold text-gray-700">
-                            <span>₦</span>
-                            <input
-                              type="number"
-                              value={editingPrice}
-                              onChange={(e) => setEditingPrice(Math.max(0, parseInt(e.target.value) || 0))}
-                              className="w-full text-xs p-1 border rounded bg-white text-gray-800"
-                            />
-                          </div>
-                          <div className="flex items-center gap-1.5 text-xs font-mono font-bold text-gray-700">
-                            <span>Qty:</span>
-                            <input
-                              type="number"
-                              value={editingQty}
-                              onChange={(e) => setEditingQty(Math.max(0, parseInt(e.target.value) || 0))}
-                              className="w-16 text-center text-xs p-1 border rounded bg-white text-gray-800"
-                            />
-                          </div>
-                          <button
-                            onClick={() => handleSaveProductEdit(p.id)}
-                            className="w-full py-1 bg-green-600 text-white rounded text-[10px] font-bold uppercase"
-                          >
-                            Save Updates
-                          </button>
-                        </div>
-                      ) : (
-                        <div className="flex items-center justify-between mt-3">
-                          <p className="text-xs font-mono font-bold text-brand-black">₦{p.price.toLocaleString()}</p>
-                          <p className="text-[10px] font-mono text-brand-blue font-bold">Qty: {p.quantity} Units</p>
-                        </div>
-                      )}
+                      <div className="flex items-center justify-between mt-3">
+                        <p className="text-xs font-mono font-bold text-brand-black">₦{p.price.toLocaleString()}</p>
+                        <p className="text-[10px] font-mono text-brand-blue font-bold">Qty: {p.quantity} Units</p>
+                      </div>
 
                       {/* Editing Actions buttons bar */}
                       <div className="mt-3 pt-3 border-t border-gray-100 flex justify-end gap-2 text-[10px] font-bold">
                         <button
                           onClick={() => {
                             setEditingProdId(p.id);
+                            setEditingName(p.name);
+                            setEditingBrand(p.brand);
+                            setEditingCategory(p.category);
                             setEditingPrice(p.price);
                             setEditingQty(p.quantity);
+                            setEditingDesc(p.description || '');
+                            setEditingImage(p.image);
+                            setEditingSpecs(p.specs.join(', '));
                           }}
                           className="text-brand-blue hover:underline uppercase flex items-center gap-1 cursor-pointer"
                         >
@@ -430,15 +651,88 @@ export default function StaffPortalView({
               </div>
 
               <div>
-                <label className="block text-gray-655 font-semibold mb-1">Showcase Image Unsplash Link</label>
-                <input
-                  type="url"
-                  required
-                  placeholder="e.g., https://images.unsplash.com/photo-..."
-                  value={newProdImage}
-                  onChange={(e) => setNewProdImage(e.target.value)}
-                  className="w-full text-xs p-3 border rounded-lg bg-gray-50/50 outline-none focus:border-brand-orange"
-                />
+                <label className="block text-gray-655 font-semibold mb-2">Showcase Photo/Video File (Natural Upload) <span className="text-red-500">*</span></label>
+                {newProdImage ? (
+                  <div className="relative rounded-2xl overflow-hidden bg-gray-950 border border-gray-200 p-2 flex flex-col items-center justify-center group">
+                    {isVideoSrc(newProdImage) ? (
+                      <video src={newProdImage} controls className="max-h-48 rounded-lg w-auto object-contain mx-auto" />
+                    ) : (
+                      <img src={newProdImage} alt="Product media preview" className="max-h-48 rounded-lg w-auto object-contain mx-auto" referrerPolicy="no-referrer" />
+                    )}
+                    
+                    <button
+                      type="button"
+                      onClick={() => setNewProdImage('')}
+                      className="absolute top-3 right-3 bg-red-600 hover:bg-red-700 text-white p-1.5 rounded-full shadow-md hover:scale-105 transition-all cursor-pointer flex items-center justify-center border border-red-500"
+                      title="Clear uploaded file"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+
+                    <div className="w-full text-center mt-2 pb-1 text-[10px] font-mono text-gray-400">
+                      Format: {isVideoSrc(newProdImage) ? '🎥 Live Showroom Demo Video' : '🖼️ Showcase Product Image'}
+                    </div>
+                  </div>
+                ) : (
+                  <div
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
+                    onDragEnter={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                        const file = e.dataTransfer.files[0];
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                          if (typeof reader.result === 'string') {
+                            setNewProdImage(reader.result);
+                          }
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }}
+                    onClick={() => document.getElementById('new-production-file-input')?.click()}
+                    className="border-2 border-dashed border-gray-300 hover:border-brand-orange bg-gray-55/40 rounded-2xl p-6 text-center cursor-pointer transition-all hover:bg-gray-50 flex flex-col items-center justify-center gap-2 select-none group min-h-[140px]"
+                  >
+                    <input
+                      id="new-production-file-input"
+                      type="file"
+                      accept="image/*,video/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        if (e.target.files && e.target.files[0]) {
+                          const file = e.target.files[0];
+                          const reader = new FileReader();
+                          reader.onloadend = () => {
+                            if (typeof reader.result === 'string') {
+                              setNewProdImage(reader.result);
+                            }
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                    />
+                    <div className="p-3 bg-brand-orange/10 rounded-full text-brand-orange group-hover:scale-105 transition-transform">
+                      <UploadCloud className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="font-bold text-gray-800 text-[11px]">Drag & Drop Product Media file</p>
+                      <p className="text-gray-400 text-[10px] mt-0.5">Supports high quality Showcase Photos or TV demo MP4 Videos</p>
+                      <button
+                        type="button"
+                        className="mt-2.5 px-3 py-1 bg-brand-black hover:bg-brand-orange text-white text-[9px] font-bold uppercase rounded transition-colors"
+                      >
+                        Browse Media Files
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div>
@@ -671,6 +965,191 @@ export default function StaffPortalView({
               </tbody>
             </table>
           </div>
+        </div>
+      )}
+
+      {activePortalTab === 'Gallery' && (
+        /* Gallery Portfolio Management CRUD */
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start animate-in fade-in duration-200">
+          
+          {/* Gallery Items Grid list */}
+          <div className="lg:col-span-2 space-y-6">
+            <h3 className="font-display font-bold text-lg text-brand-black">Portfolio Gallery Items ({galleryItems.length})</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {galleryItems.map(item => (
+                <div key={item.id} className="bg-white p-4 border border-gray-200 rounded-2xl flex gap-3 shadow-xs relative">
+                  {isVideoSrc(item.image) ? (
+                    <video src={item.image} className="w-16 h-12 object-cover rounded-lg border shrink-0 bg-black" autoPlay loop muted playsInline />
+                  ) : (
+                    <img src={item.image} className="w-16 h-12 object-cover rounded-lg border shrink-0" referrerPolicy="no-referrer" />
+                  )}
+                  
+                  <div className="flex-1 min-w-0 font-sans">
+                    <span className="text-[9px] font-mono uppercase font-bold text-brand-orange">{item.category}</span>
+                    <h4 className="font-bold text-xs text-gray-800 leading-tight truncate">{item.title}</h4>
+                    <p className="text-[10px] text-gray-500 line-clamp-2 mt-1 italic">{item.caption || 'No caption provided.'}</p>
+                    
+                    {/* Actions button */}
+                    <div className="mt-3 pt-3 border-t border-gray-100 flex justify-end">
+                      <button
+                        onClick={() => handleDeleteGalleryItem(item.id)}
+                        className="text-red-550 text-red-500 hover:underline uppercase flex items-center gap-1 cursor-pointer text-[10px] font-bold"
+                      >
+                        <Trash2 className="w-3 h-3 text-red-500" />
+                        <span>Remove Item</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              {galleryItems.length === 0 && (
+                <div className="col-span-2 bg-white border rounded-2xl p-8 text-center text-gray-400 font-mono text-xs">
+                  No showcase photographs currently active in the web gallery.
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* New Gallery Upload Form */}
+          <div className="bg-white border border-gray-250 p-6 rounded-3xl shadow-sm">
+            <h3 className="font-display font-medium text-base text-brand-black mb-3 pb-2 border-b">
+              Upload New Showcase Photo
+            </h3>
+
+            <form onSubmit={handleAddNewGalleryItem} className="space-y-4 text-xs">
+              <div>
+                <label className="block text-gray-655 font-semibold mb-1">
+                  Showcase Setup Title <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g., Slim Timber TV Wall & LG OLED install"
+                  value={newGalTitle}
+                  onChange={(e) => setNewGalTitle(e.target.value)}
+                  className="w-full text-xs p-3 border rounded-lg bg-gray-50/50 outline-none focus:border-brand-orange"
+                />
+              </div>
+
+              <div>
+                <label className="block text-gray-655 font-semibold mb-1">Setup Type Room Category</label>
+                <select
+                  value={newGalCategory}
+                  onChange={(e: any) => setNewGalCategory(e.target.value)}
+                  className="w-full text-xs p-3 border rounded-lg bg-gray-50 outline-none cursor-pointer focus:border-brand-orange"
+                >
+                  <option value="Home Setups">Home Setups</option>
+                  <option value="Office Setups">Office Setups</option>
+                  <option value="Event Setups">Event Setups</option>
+                  <option value="Installations">Installations</option>
+                  <option value="Customer Spaces">Customer Spaces</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-gray-655 font-semibold mb-2">Showcase Photo/Video File (Natural Upload) <span className="text-red-500">*</span></label>
+                {newGalImage ? (
+                  <div className="relative rounded-2xl overflow-hidden bg-gray-950 border border-gray-200 p-2 flex flex-col items-center justify-center">
+                    {isVideoSrc(newGalImage) ? (
+                      <video src={newGalImage} controls className="max-h-48 rounded-lg w-auto object-contain mx-auto" />
+                    ) : (
+                      <img src={newGalImage} alt="Showcase upload preview" className="max-h-48 rounded-lg w-auto object-contain mx-auto" referrerPolicy="no-referrer" />
+                    )}
+                    
+                    <button
+                      type="button"
+                      onClick={() => setNewGalImage('')}
+                      className="absolute top-3 right-3 bg-red-600 hover:bg-red-700 text-white p-1.5 rounded-full shadow-md hover:scale-105 transition-all cursor-pointer flex items-center justify-center border border-red-500"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                    <div className="w-full text-center mt-2 pb-1 text-[10px] font-mono text-gray-400">
+                      File Format ready for live web display.
+                    </div>
+                  </div>
+                ) : (
+                  <div
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
+                    onDragEnter={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                        const file = e.dataTransfer.files[0];
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                          if (typeof reader.result === 'string') {
+                            setNewGalImage(reader.result);
+                          }
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }}
+                    onClick={() => document.getElementById('new-gallery-file-input')?.click()}
+                    className="border-2 border-dashed border-gray-300 hover:border-brand-orange bg-gray-55/40 rounded-2xl p-6 text-center cursor-pointer transition-all hover:bg-gray-50 flex flex-col items-center justify-center gap-2 select-none group min-h-[140px]"
+                  >
+                    <input
+                      id="new-gallery-file-input"
+                      type="file"
+                      accept="image/*,video/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        if (e.target.files && e.target.files[0]) {
+                          const file = e.target.files[0];
+                          const reader = new FileReader();
+                          reader.onloadend = () => {
+                            if (typeof reader.result === 'string') {
+                              setNewGalImage(reader.result);
+                            }
+                          };
+                          reader.readAsDataURL(file);
+                         }
+                      }}
+                    />
+                    <div className="p-3 bg-brand-orange/10 rounded-full text-brand-orange group-hover:scale-105 transition-transform">
+                      <UploadCloud className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="font-bold text-gray-800 text-[11px]">Drag & Drop Setup Photo</p>
+                      <p className="text-gray-400 text-[10px] mt-0.5">Supports high resolution showroom setups, TV hockings, or sound alignments</p>
+                      <button
+                        type="button"
+                        className="mt-2.5 px-3 py-1 bg-brand-black hover:bg-brand-orange text-white text-[9px] font-bold uppercase rounded transition-colors"
+                      >
+                        Browse Media Files
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-gray-655 font-semibold mb-1">Detailed Caption & Technical Summary</label>
+                <textarea
+                  rows={3}
+                  placeholder="Describe your design choices, equipment installed, before-state context, or mounting layout..."
+                  value={newGalCaption}
+                  onChange={(e) => setNewGalCaption(e.target.value)}
+                  className="w-full text-xs p-3 border rounded-lg bg-gray-50/50 outline-none focus:border-brand-orange resize-none"
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full py-3 bg-brand-orange hover:bg-orange-655 text-white font-bold rounded-xl text-xs uppercase cursor-pointer"
+              >
+                ✔ Publish to Showcase Room
+              </button>
+            </form>
+          </div>
+
         </div>
       )}
 

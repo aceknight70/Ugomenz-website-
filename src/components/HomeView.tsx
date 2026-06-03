@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import {
   Tag, Image, Video, Sparkles, MessageCircle, ShoppingCart, Eye, ChevronRight, X, Clock, HelpCircle, ArrowRight
 } from 'lucide-react';
-import { Product, GalleryItem, BlogPost } from '../types';
+import { Product, GalleryItem, BlogPost, isVideoSrc } from '../types';
 
 interface HomeViewProps {
   products: Product[];
@@ -249,13 +249,24 @@ export default function HomeView({
             onClick={() => setSelectedItem(item)}
           >
             {/* Visual Header */}
-            <div className="relative overflow-hidden aspect-[4/3]">
-              <img
-                src={item.image}
-                alt={item.title}
-                referrerPolicy="no-referrer"
-                className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-500"
-              />
+            <div className="relative overflow-hidden aspect-[4/3] bg-gray-50 flex items-center justify-center">
+              {isVideoSrc(item.image) ? (
+                <video
+                  src={item.image}
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-500 bg-black"
+                />
+              ) : (
+                <img
+                  src={item.image}
+                  alt={item.title}
+                  referrerPolicy="no-referrer"
+                  className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-500"
+                />
+              )}
               {/* Type Category Tag */}
               <div className="absolute top-3 left-3 flex gap-1.5">
                 <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full shadow-sm ${item.badgeColor}`}>
@@ -337,14 +348,26 @@ export default function HomeView({
               </button>
 
               <div className="flex flex-col">
-                <div className="h-64 sm:h-80 relative">
-                  <img
-                    src={selectedItem.image}
-                    alt={selectedItem.title}
-                    referrerPolicy="no-referrer"
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900/40 to-transparent" />
+                <div className="h-64 sm:h-80 relative flex items-center justify-center bg-gray-50 overflow-hidden">
+                  {isVideoSrc(selectedItem.image) ? (
+                    <video
+                      src={selectedItem.image}
+                      controls
+                      autoPlay
+                      loop
+                      muted={false}
+                      playsInline
+                      className="w-full h-full object-cover bg-black"
+                    />
+                  ) : (
+                    <img
+                      src={selectedItem.image}
+                      alt={selectedItem.title}
+                      referrerPolicy="no-referrer"
+                      className="w-full h-full object-cover"
+                    />
+                  )}
+                  <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-slate-900/40 to-transparent pointer-events-none" />
                   <span className="absolute bottom-4 left-4 bg-brand-orange text-white text-[10px] uppercase font-bold tracking-widest px-3 py-1 rounded-full">
                     {selectedItem.type} Details
                   </span>
